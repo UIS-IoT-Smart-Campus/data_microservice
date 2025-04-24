@@ -3,6 +3,7 @@ package com.smartuis.messages;
 import com.smartuis.messages.service.DeviceMessageMqttService;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -23,10 +24,20 @@ import org.springframework.messaging.MessagingException;
 @SpringBootApplication
 public class MessagesApplication {
 
-    private String brokerIp = "tcp://"+System.getenv("BROKER_IP")+":1883";
+    private String broker_ip = System.getenv("BROKER_IP") != null ? System.getenv("BROKER_IP") : "localhost";
+    private String brokerIp = "tcp://"+broker_ip+":1883";
+    
+
+
 //    private String brokerIp = "tcp://localhost:1883";
-    private String clientId = "serviceMessageClient";
-    private String topic = System.getenv("TOPIC");
+    @Value("${BROKER_CLIENT_ID:data_microservice}")
+    private String clientId;
+    @Value("${BROKER_TOPIC:smartCampus/#}")
+    private String topic;
+    @Value("${BROKER_USERNAME:admin}")
+    private String username;
+    @Value("${BROKER_PASSWORD:public}")
+    private String password;
 
     @Autowired
     private DeviceMessageMqttService mqttService;
@@ -51,7 +62,7 @@ public class MessagesApplication {
                 new MqttPahoMessageDrivenChannelAdapter(brokerIp, clientId, topic);
         adapter.setCompletionTimeout(5000);
         adapter.setConverter(new DefaultPahoMessageConverter());
-        adapter.setQos(1);
+        adapter.setQos(2);
         adapter.setOutputChannel(mqttInputChannel());
         return adapter;
     }
@@ -109,7 +120,11 @@ public class MessagesApplication {
     public MqttPahoClientFactory mqttClientFactory() {
         DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
         MqttConnectOptions options = new MqttConnectOptions();
+        options.setCleanSession(true);
         options.setServerURIs(new String[]{brokerIp});
+        System.out.println(brokerIp);
+        options.setUserName(username);
+        options.setPassword(password.toCharArray());
         factory.setConnectionOptions(options);
         return factory;
     }
