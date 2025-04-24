@@ -19,7 +19,7 @@ public class DeviceMessageServiceImpl  implements DeviceMessageService{
     @Override
     public List<DeviceMessageDetail> findByDeviceUUID(String uuid){
         List<DeviceMessageDetail> list_messages = new ArrayList<>();
-        System.out.println(uuid);
+        //System.out.println(uuid);
 
         Iterable<DeviceMessage> db_list = repository.findBydeviceUUID(uuid);
         //Iterable<DeviceMessage> db_list = repository.findAll();
